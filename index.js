@@ -1,35 +1,15 @@
-var fs = require('fs')
-    , path = require('path')
-    , builtEdge = path.resolve(__dirname, '../build/Release/' + (process.env.EDGE_USE_CORECLR || !fs.existsSync(path.resolve(__dirname, '../build/Release/edge_nativeclr.node')) ? 'edge_coreclr.node' : 'edge_nativeclr.node'))
-    , edge;
+"use strict";
+const fs = require('fs');
+const path = require('path');
 
-var versionMap = [
-    [ /^6\./, '6.12.2' ],
-    [ /^7\./, '7.10.1' ],
-    [ /^8\./, '8.9.3' ],
-    [ /^9\./, '9.3.0' ],
-];
+const builtEdge = path.join(__dirname, 'build', 'Release', (process.env.EDGE_USE_CORECLR || !fs.existsSync(path.join(__dirname, 'build', 'Release', 'edge_nativeclr.node')) ? 'edge_coreclr.node' : 'edge_nativeclr.node'));
 
-function determineVersion() {
-    for (var i in versionMap) {
-        if (process.versions.node.match(versionMap[i][0])) {
-            return versionMap[i][1];
-        }
-    }
-
-    throw new Error('The edge module has not been pre-compiled for node.js version ' + process.version +
-        '. You must build a custom version of edge.node. Please refer to https://github.com/tjanczuk/edge ' +
-        'for building instructions.');
-}
-var edgeNative;
+let edgeNative;
 if (process.env.EDGE_NATIVE) {
     edgeNative = process.env.EDGE_NATIVE;
 }
 else if (fs.existsSync(builtEdge)) {
     edgeNative = builtEdge;
-}
-else if (process.platform === 'win32') {
-    edgeNative = path.resolve(__dirname, './native/' + process.platform + '/' + process.arch + '/' + determineVersion() + '/' + (process.env.EDGE_USE_CORECLR ? 'edge_coreclr' : 'edge_nativeclr'));
 }
 else {
     throw new Error('The edge native module is not available at ' + builtEdge 
@@ -50,7 +30,7 @@ if (process.env.EDGE_USE_CORECLR && !process.env.EDGE_BOOTSTRAP_DIR && fs.exists
 
 process.env.EDGE_NATIVE = edgeNative;
 
-edge = require(edgeNative);
+const edge = require(edgeNative);
 
 exports.func = function(language, options) {
     if (!options) {
